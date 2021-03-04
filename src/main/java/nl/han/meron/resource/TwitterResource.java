@@ -1,9 +1,9 @@
 package nl.han.meron.resource;
 
-import nl.han.meron.datasource.NoTweetsFromAuthorException;
 import nl.han.meron.datasource.TweetsDAO;
 import nl.han.meron.resource.dto.TweetDTO;
 
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -13,10 +13,6 @@ import java.util.List;
 public class TwitterResource {
 
     private TweetsDAO tweetsDAO;
-
-    public TwitterResource() {
-        tweetsDAO = new TweetsDAO();
-    }
 
     @GET
     @Path("/tweets")
@@ -35,20 +31,16 @@ public class TwitterResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAll() {
-        return Response.ok(tweetsDAO.getTweets(-1)).build();
+        List<TweetDTO> tweets = tweetsDAO.getTweets(-1);
+
+        return Response.ok(tweets).build();
     }
 
     @GET
     @Path("/tweets/{author}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getTweetsForAuthor(@PathParam("author") String author) {
-        List<TweetDTO> tweets;
-
-        try {
-            tweets = tweetsDAO.getTweets(author);
-        } catch (NoTweetsFromAuthorException ex) {
-            return Response.status(404).build();
-        }
+        List<TweetDTO> tweets = tweetsDAO.getTweets(author);
 
         return Response.ok(tweets).build();
     }
@@ -59,5 +51,10 @@ public class TwitterResource {
         tweetsDAO.addTweet(tweetDTO);
 
         return Response.status(201).build();
+    }
+
+    @Inject
+    public void setTweetsDAO(TweetsDAO tweetsDAO) {
+        this.tweetsDAO = tweetsDAO;
     }
 }
